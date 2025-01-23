@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portable Downloader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #000000;
+            color: white;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden; /* Prevent horizontal overflow */
+        }
+
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            max-width: 100%; /* Ensure the grid doesn't overflow the viewport */
+            margin: 0 auto; /* Center the grid */
+        }
+
+        img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            transition: transform 0.2s ease, border-color 0.3s ease;
+        }
+
+        img:hover {
+            transform: scale(1.1);
+            border-color: #0078d7;
+        }
+
+        #slider-container {
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to DODI's Magnet Grabber</h1>
+    <p>Left Click an image to start downloading - (A Torrent client does have to be installed first if you don't have it yet).</p>
+    <p>Right Click to Copy Magnet</p>
+    <p>Made By IceQueen</p>
+    <div id="slider-container">
+        <label for="size-slider">Adjust Image Size: </label>
+        <input type="range" id="size-slider" min="50" max="300" value="150" step="10">
+    </div>
+    <div id="grid"></div>
+
+    <script>
+        const grid = document.getElementById('grid');
+        const slider = document.getElementById('size-slider');
+
+        // Fetch the data from the Netlify-hosted JSON file
+        fetch('https://repack-hub.win/data.json')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Populate the grid with images and magnet links
+                data.images.forEach((image, index) => {
+                    const img = document.createElement('img');
+                    img.src = image;
+                    img.alt = `Image ${index + 1}`;
+
+                    // Left-click: Open the magnet link
+                    img.onclick = () => {
+                        window.location.href = data.magnets[index];
+                    };
+
+                    // Right-click: Copy the magnet link
+                    img.addEventListener('contextmenu', (event) => {
+                        event.preventDefault(); // Prevent the default right-click menu
+
+                        // Copy the magnet URL to the clipboard
+                        navigator.clipboard.writeText(data.magnets[index]).then(() => {
+                            showPopup("Magnet URL copied to clipboard!");
+                        }).catch((err) => {
+                            console.error("Failed to copy the magnet URL:", err);
+                        });
+                    });
+
+                    grid.appendChild(img);
+                });
+            })
+            .catch(error => {
+                console.error('Failed to fetch data:', error);
+            });
+
+        // Adjust image size dynamically using the slider
+        slider.addEventListener('input', (event) => {
+            const newSize = event.target.value + 'px';
+            document.querySelectorAll('img').forEach(img => {
+                img.style.width = newSize;
+                img.style.height = newSize;
+            });
+
+            // Dynamically adjust grid to prevent overflowing
+            const availableWidth = window.innerWidth - 40; // Account for padding
+            const imgSize = parseInt(event.target.value) + 20; // Include gap
+            const maxColumns = Math.floor(availableWidth / imgSize);
+            grid.style.gridTemplateColumns = `repeat(${maxColumns}, 1fr)`;
+        });
+
+        // Function to show a smooth popup notification
+        function showPopup(message) {
+            const popup = document.createElement('div');
+            popup.textContent = message;
+            popup.style.position = 'fixed';
+            popup.style.bottom = '20px';
+            popup.style.right = '20px';
+            popup.style.backgroundColor = '#0078d7';
+            popup.style.color = 'white';
+            popup.style.padding = '10px 20px';
+            popup.style.borderRadius = '5px';
+            popup.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+            popup.style.fontSize = '14px';
+            popup.style.zIndex = '1000';
+            popup.style.opacity = '0';
+            popup.style.transition = 'opacity 0.3s ease';
+
+            document.body.appendChild(popup);
+
+            // Fade in the popup
+            setTimeout(() => {
+                popup.style.opacity = '1';
+            }, 10);
+
+            // Remove the popup after 3 seconds
+            setTimeout(() => {
+                popup.style.opacity = '0';
+                setTimeout(() => popup.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
