@@ -59,13 +59,13 @@
         const grid = document.getElementById('grid');
         const slider = document.getElementById('size-slider');
 
-        // Fetch the data from the Netlify-hosted JSON file
-        fetch('https://dodi.pages.dev/data.json')
+        // Fetch the data from the GitHub-hosted JSON file
+        fetch('https://raw.githubusercontent.com/M0mYm4t3ria1/dodi/refs/heads/main/dodi/data.json')
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`Network response was not ok: ${response.statusText}`);
                 }
-                return response.json();
+                return response.json(); // Parse the response as JSON
             })
             .then(data => {
                 // Populate the grid with images and magnet links
